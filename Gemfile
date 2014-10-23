@@ -16,8 +16,6 @@ gem 'coffee-rails', '~> 4.0.0'
 
 # Use jQuery as the JavaScript library
 gem 'jquery-rails', '~> 4.0.0.beta2'
-# Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
-gem 'turbolinks'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.0'
 # bundle exec rake doc:rails generates the API under doc/api.
@@ -38,6 +36,9 @@ gem 'sprockets-commonjs', git: 'git://github.com/maccman/sprockets-commonjs.git'
 # React for coffee
 gem 'sprockets-coffee-react'
 
+# Bourbon
+gem 'bourbon'
+
 
 group :development, :test do
   # Call 'debugger' anywhere in the code to stop execution and get a debugger console
@@ -48,5 +49,8 @@ group :development, :test do
 
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
+  
+  # Quiet Assets turns off the Rails asset pipeline log
+  gem 'quiet_assets'
 end
 

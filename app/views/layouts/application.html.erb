@@ -2,13 +2,21 @@
 <html>
 <head>
   <title>Timeline</title>
-  <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
-  <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+  <%= stylesheet_link_tag    'application', media: 'all' %>
   <%= csrf_meta_tags %>
 </head>
-<body>
+  <body>
 
-<%= yield %>
+    <header>
+    </header>
 
-</body>
+    <main>
+      <%= yield %>
+    </main>
+  
+    <footer>
+    </footer>
+
+    <%= javascript_include_tag 'application' %>
+  </body>
 </html>
