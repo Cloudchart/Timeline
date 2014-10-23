@@ -33,7 +33,7 @@ gem 'sdoc', '~> 0.4.0', group: :doc
 # gem 'capistrano-rails', group: :development
 
 # CommonJS
-gem 'sprockets-commonjs'
+gem 'sprockets-commonjs', git: 'git://github.com/maccman/sprockets-commonjs.git'
 
 # React for coffee
 gem 'sprockets-coffee-react'
