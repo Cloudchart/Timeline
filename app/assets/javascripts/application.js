@@ -13,6 +13,9 @@
 //= require jquery
 //= require jquery_ujs
 //= require react
+//= require flux
+//= require immutable
+//= require moment
 //= require_tree .
 
 require('main')

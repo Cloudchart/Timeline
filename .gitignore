@@ -11,7 +11,8 @@
 /log/*.log
 /tmp
 
-# Ignore rbenv gemsets
+# Ignore rbenv
+.ruby-version
 .rbenv-gemsets
 
 # Ignore rbenv gems

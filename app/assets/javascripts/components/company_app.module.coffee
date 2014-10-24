@@ -2,6 +2,8 @@
 #
 tag = React.DOM
 
+People = require('components/people')
+
 
 # Main
 #
@@ -12,4 +14,16 @@ module.exports = React.createClass
   
   
   render: ->
-    (tag.noscript null)
+    (tag.article {
+      className: 'editor'
+    },
+      
+      (tag.section {
+        className: 'people'
+      },
+      
+        (People null)
+      
+      )
+      
+    )

@@ -1,0 +1,57 @@
+#timeline {
+  @include position(fixed, null 20px 20px 20px);
+
+  background-color: #999;
+  margin: 0;
+  padding: 0;
+  
+  > table {
+    width: 100%;
+    
+    tbody td {
+      background-color: #fff;
+      border: 1px solid #999;
+      position: relative;
+      
+      &.current,
+      &:hover {
+        background-color: #eee;
+        cursor: pointer;
+        
+        &::before {
+          @include box-sizing(border-box);
+          @include position(absolute, null null 100% 50%);
+          @include transform(translateX(-50%) translateY(-10px));
+        
+          background-color: inherit;
+          border: 1px solid #ccc;
+          content: attr(data-title);
+          display: block;
+          font-size: 12px;
+          padding: 5px 10px;
+          white-space: nowrap;
+        }
+        
+        &::after {
+          @include box-sizing(border-box);
+          @include position(absolute, null null 50% 50%);
+          @include transform(translateX(-50%));
+
+          border: 10px solid transparent;
+          border-top-color: #ccc;
+          content: '';
+          display: block;
+          width: 20px;
+          height: 20px;
+        }
+      }
+      
+      &:hover {
+        z-index: 1;
+      }
+
+
+    }
+  }
+
+}
