@@ -1,13 +1,11 @@
 # @cjsx React.DOM
 
-# Imports
-#
-tag = React.DOM
-
-
 # Exports
 #
 module.exports = React.createClass
+
+
+  displayName: 'People'
 
 
   render: ->

@@ -1,8 +1,7 @@
-# Imports
-#
-tag = React.DOM
+# @cjsx React.DOM
 
-People = require('components/people')
+
+People = React.createFactory(require('components/people'))
 
 
 # Main
@@ -14,16 +13,8 @@ module.exports = React.createClass
   
   
   render: ->
-    (tag.article {
-      className: 'editor'
-    },
-      
-      (tag.section {
-        className: 'people'
-      },
-      
-        (People null)
-      
-      )
-      
-    )
+    <article className="editor">
+      <section className="people">
+        <People />
+      </section>
+    </article>
