@@ -1,13 +1,16 @@
 @import 'normalize';
 @import 'bourbon';
-@import 'timeline';
-
-* {
-  @include box-sizing(border-box);
-}
 
 html {
+  @include box-sizing(border-box);
+  
   height: 100%;
+}
+
+*,
+*::before,
+*::after {
+  @include box-sizing(inherit);
 }
 
 body {
@@ -28,3 +31,8 @@ body {
   }
   
 }
+
+@import 'timeline';
+@import 'modal';
+@import 'button';
+@import 'person_form';

@@ -1,0 +1,21 @@
+$modal-window-background-color: hsla(0, 0%, 50%, .5);
+
+#modal-mount-point {
+  @include position(absolute, 0px null null 0px);
+  
+  > .modal-window {
+    @include display(flex);
+    @include position(fixed, 0px 0px 0px 0px);
+    
+    background-color: $modal-window-background-color;
+    
+    > .modal-container {
+      background-color: hsl(0, 100%, 100%);
+      
+      padding: 20px;
+      margin: auto;
+    }
+    
+  }
+  
+}

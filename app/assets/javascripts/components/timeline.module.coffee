@@ -2,7 +2,8 @@
 
 tag = React.DOM
 
-dispatcher = require('cloud_flux/dispatcher')
+
+CloudFlux = require('cloud_flux')
 
 
 # Exports
@@ -11,10 +12,16 @@ module.exports = React.createClass
 
 
   displayName: 'Timeline'
+  
+  
+  mixins: [CloudFlux.mixins.StoreListener]
+  
+  
+  storesToListen: ['First', 'Second', 'Third']
 
 
   setCurrentDate: (date) ->
-    dispatcher.handleClientAction({ type: 'timeline:set-current', date: date })
+    CloudFlux.Dispatcher.handleClientAction({ type: 'timeline:set-current', date: date })
 
 
   gatherDates: ->
@@ -34,7 +41,7 @@ module.exports = React.createClass
   
 
   componentDidMount: ->
-    @dispatcherToken = dispatcher.register (payload) =>
+    @dispatcherToken = CloudFlux.Dispatcher.register (payload) =>
       if payload.action.type == 'timeline:set-current'
         @setState({ current: payload.action.date })
         

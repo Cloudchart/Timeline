@@ -1,0 +1,12 @@
+$button-background-color: HSL(135, 50%, 50%);
+$button-color: hsl(0, 100%, 100%);
+
+button {
+  background-color: $button-background-color;
+  border: none;
+  color: $button-color;
+  font-size: 15px;
+  height: 30px;
+  margin: 0;
+  padding: 0 10px;
+}
