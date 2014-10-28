@@ -11,7 +11,7 @@ module.exports = React.createClass
 
   displayName: 'Modal Window'
 
-
+  
   render: ->
     (tag.div {
       className: 'modal-window'

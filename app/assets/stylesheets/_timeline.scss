@@ -1,9 +1,12 @@
+$timeline-z-index: 2000;
+
 #timeline {
   @include position(fixed, null 20px 20px 20px);
 
   background-color: #999;
   margin: 0;
   padding: 0;
+  z-index: $timeline-z-index;
   
   > table {
     width: 100%;

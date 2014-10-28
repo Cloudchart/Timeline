@@ -5,4 +5,5 @@ module.exports =
   
 
   mixins:
-    StoreListener: require('cloud_flux/mixins/store_listener')
+    StoreListener:  require('cloud_flux/mixins/store_listener')
+    Actions:        require('cloud_flux/mixins/actions')

@@ -1,6 +1,9 @@
 tag = React.DOM
 
 
+CloudFlux = require('cloud_flux')
+
+
 Schema =
   
   title:  'Person'
@@ -12,11 +15,14 @@ Schema =
     name:
       type: 'string'
     occupation:
-      type: 'string'
+      type:     'string'
+      timeline: true
     salary:
-      type: 'integer'
+      type:     'integer'
+      timeline: true
     stock:
-      type: 'number'
+      type:     'number'
+      timeline: true
     hired_on:
       type: 'date'
     fired_on:
@@ -28,6 +34,7 @@ Schema =
       uniqueItems:  true
 
   required: ['name']
+
 
 
 Fields = [
@@ -72,6 +79,16 @@ module.exports = React.createClass
   displayName: 'Person Form'
   
   
+  mixins: [
+    CloudFlux.mixins.Actions
+  ]
+  
+  
+  
+  getFluxActions: ->
+    'timeline:date:set': @handleTimelineDateSet
+  
+  
   gatherFields: ->
     _.map Fields, (field) =>
       (tag.label {
@@ -87,21 +104,38 @@ module.exports = React.createClass
       )
   
   
+  handleTimelineDateSet: (date) ->
+    unless date == @state.current_date
+      console.log 'change date', date, @state.current_date
+  
+  
   handleFieldChange: (key, event) ->
     state       = {}
     state[key]  = event.target.value
     @setState(state)
   
   
+  handleFieldBlur: (key) ->
+    
+  
+  
   handleSubmit: (event) ->
     event.preventDefault()
   
   
+  componentDidMount: ->
+    @triggerAction('timeline:date:set', @state.current_date)
+  
+  
   getInitialState: ->
-    {
-      name:         ''
-      occupation:   ''
-    }
+    name:                   ''
+    occupation:             ''
+    salary:                 ''
+    stock:                  ''
+    hired_on:               ''
+    fired_on:               ''
+    previous_occupations:   ''
+    current_date:           moment().startOf('month')
 
 
   render: ->

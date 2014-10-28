@@ -1,4 +1,5 @@
 $modal-window-background-color: hsla(0, 0%, 50%, .5);
+$modal-window-z-index: 1000;
 
 #modal-mount-point {
   @include position(absolute, 0px null null 0px);
@@ -8,6 +9,7 @@ $modal-window-background-color: hsla(0, 0%, 50%, .5);
     @include position(fixed, 0px 0px 0px 0px);
     
     background-color: $modal-window-background-color;
+    z-index: $modal-window-z-index;
     
     > .modal-container {
       background-color: hsl(0, 100%, 100%);

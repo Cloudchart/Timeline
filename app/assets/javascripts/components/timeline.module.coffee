@@ -14,21 +14,32 @@ module.exports = React.createClass
   displayName: 'Timeline'
   
   
-  mixins: [CloudFlux.mixins.StoreListener]
+  mixins: [
+    CloudFlux.mixins.StoreListener
+    CloudFlux.mixins.Actions
+  ]
   
   
   storesToListen: ['First', 'Second', 'Third']
+  
+
+  getFluxActions: ->
+    'timeline:date:set': @handleDateSet
+  
+  
+  handleDateSet: (date) ->
+    @setState({ current: date })
 
 
   setCurrentDate: (date) ->
-    CloudFlux.Dispatcher.handleClientAction({ type: 'timeline:set-current', date: date })
+    @triggerAction('timeline:date:set', date)
 
 
   gatherDates: ->
     months  = Math.ceil(moment.duration(@state.till - @state.from).as('months'))
 
     _.map [0..months], (i) =>
-      now   = moment(@state.from).add(i, 'month')
+      now   = moment(@state.from).add(i, 'month').startOf('month')
       key   = now.format('YYYY-MM-DD')
       title = now.format('MMM YYYY')
       
@@ -40,19 +51,20 @@ module.exports = React.createClass
       </td>
   
 
-  componentDidMount: ->
-    @dispatcherToken = CloudFlux.Dispatcher.register (payload) =>
-      if payload.action.type == 'timeline:set-current'
-        @setState({ current: payload.action.date })
-        
+  # componentDidMount: ->
+  #   @dispatcherToken = CloudFlux.Dispatcher.register (payload) =>
+  #     if payload.action.type == 'timeline:set-current'
+  #       @setState({ current: payload.action.date })
 
 
   getInitialState: ->
     from  = moment(new Date(@props.from))
     till  = moment(new Date(@props.till))
+
     from:     from
     till:     till
     current:  till.format('YYYY-MM-DD')
+    store:    null
 
 
   render: ->
