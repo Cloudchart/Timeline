@@ -1,9 +1,14 @@
-tag = React.DOM
+# @cjsx React.DOM
 
+tag = React.DOM
 
 CloudFlux = require('cloud_flux')
 
+TimelineStore = require('stores/timeline_store')
 
+
+# Schema
+#
 Schema =
   
   title:  'Person'
@@ -36,7 +41,8 @@ Schema =
   required: ['name']
 
 
-
+# Fields
+#
 Fields = [
   {
     key:          'occupation'
@@ -78,45 +84,57 @@ module.exports = React.createClass
 
   displayName: 'Person Form'
   
-  
   mixins: [
     CloudFlux.mixins.Actions
+    CloudFlux.mixins.StoreListener
   ]
   
   
+  storesToListen: [
+    TimelineStore
+  ]
   
-  getFluxActions: ->
-    'timeline:date:set': @handleTimelineDateSet
+  
+  handleStoreChange: ->
+    defaultState = _.reduce Schema.properties, (memo, value, key) ->
+      memo[key] = '' if value.timeline
+      memo
+    , {}
+
+    @setState(_.extend defaultState, TimelineStore.getState())
+  
+  
+  getStateForField: (name) ->
+    @state[name]
+  
+  
+  setStateForField: (name, value) ->
+    state = {} ; state[name] = value
+    @setState(state)
   
   
   gatherFields: ->
     _.map Fields, (field) =>
-      (tag.label {
-        key:        field.key
-        className:  field.key
-      },
-        (tag.span null, field.title) if field.title
-        (tag.input {
-          placeholder:  field.placeholder
-          value:        @state[field.key]
-          onChange:     @handleFieldChange.bind(@, field.key)
-        })
-      )
-  
-  
-  handleTimelineDateSet: (date) ->
-    unless date == @state.current_date
-      console.log 'change date', date, @state.current_date
+      title = <span>{field.title}</span> if field.title
+
+      <label key={field.key} className={field.key}>
+        {title}
+        <input
+          placeholder   = {field.placeholder}
+          value         = {@getStateForField(field.key)}
+          onBlur        = {@handleFieldBlur.bind(null, field.key)}
+          onChange      = {@handleFieldChange.bind(null, field.key)}
+        />
+      </label>
   
   
   handleFieldChange: (key, event) ->
-    state       = {}
-    state[key]  = event.target.value
-    @setState(state)
+    @setStateForField(key, event.target.value)
   
   
-  handleFieldBlur: (key) ->
-    
+  handleFieldBlur: (name) ->
+    if Schema.properties[name].timeline
+      TimelineStore.update(name, @state[name])
   
   
   handleSubmit: (event) ->
@@ -128,6 +146,7 @@ module.exports = React.createClass
   
   
   getInitialState: ->
+    current_date:           moment().startOf('month')
     name:                   ''
     occupation:             ''
     salary:                 ''
@@ -135,55 +154,26 @@ module.exports = React.createClass
     hired_on:               ''
     fired_on:               ''
     previous_occupations:   ''
-    current_date:           moment().startOf('month')
 
 
   render: ->
-    (tag.form {
-      className:  'person'
-      onSubmit:   @handleSubmit
-    },
-    
-      # Form content
-      #
-      (tag.section null,
-        
-        # Avatar
-        #
-        (tag.aside {
-          className: 'avatar'
-        },
-          (tag.figure null)
-        )
+    <form className="person" onSubmit={@handleSubmit}>
+      <section>
+        <aside className="avatar">
+          <figure></figure>
+        </aside>
 
-        # Fields
-        #
-        (tag.fieldset null,
-        
-          # Name
-          #
-          (tag.label {
-            className: 'name'
-          },
-            (tag.input {
-              autoFocus:    true
-              placeholder:  'Name Surname'
-            })
-          )
+        <fieldset>
+          <label className="name">
+            <input autoFocus="true" placeholder="Name Surname" value={@state.name} onChange={@handleFieldChange.bind(null, 'name')} />
+          </label>
           
-          # Other fields
-          #
-          @gatherFields()
-          
-        )
-        
-      )
-    
-      # Footer
-      #
-      (tag.footer null,
-        (tag.div { className: 'spacer' })
-        (tag.button null, 'Create person')
-      )
-    
-    )
+          {@gatherFields()}
+        </fieldset>
+      </section>
+
+      <footer>
+        <div className="spacer" />
+        <button>Create person</button>
+      </footer>
+    </form>

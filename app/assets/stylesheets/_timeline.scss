@@ -16,6 +16,10 @@ $timeline-z-index: 2000;
       border: 1px solid #999;
       position: relative;
       
+      &.effective {
+        background-color: #ccc !important;
+      }
+      
       &.current,
       &:hover {
         background-color: #eee;
@@ -26,7 +30,7 @@ $timeline-z-index: 2000;
           @include position(absolute, null null 100% 50%);
           @include transform(translateX(-50%) translateY(-10px));
         
-          background-color: inherit;
+          background-color: #fff;
           border: 1px solid #ccc;
           content: attr(data-title);
           display: block;

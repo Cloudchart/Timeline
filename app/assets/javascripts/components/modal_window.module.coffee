@@ -1,7 +1,7 @@
-tag = React.DOM
+# @cjsx React.DOM
 
 
-PersonForm = React.createFactory require('components/person_form')
+PersonForm = require('components/person_form')
 
 
 # Exports
@@ -13,12 +13,8 @@ module.exports = React.createClass
 
   
   render: ->
-    (tag.div {
-      className: 'modal-window'
-    },
-      (tag.div {
-        className: 'modal-container'
-      },
-        (PersonForm null)
-      )
-    )
+    <div className="modal-window">
+      <div className="modal-container">
+        <PersonForm />
+      </div>
+    </div>

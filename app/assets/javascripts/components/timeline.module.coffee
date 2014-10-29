@@ -3,7 +3,8 @@
 tag = React.DOM
 
 
-CloudFlux = require('cloud_flux')
+CloudFlux     = require('cloud_flux')
+TimelineStore = require('stores/timeline_store')
 
 
 # Exports
@@ -20,15 +21,21 @@ module.exports = React.createClass
   ]
   
   
-  storesToListen: ['First', 'Second', 'Third']
+  storesToListen: [
+    TimelineStore
+  ]
   
 
   getFluxActions: ->
     'timeline:date:set': @handleDateSet
   
   
+  handleStoreChange: ->
+    @setState({ timeline: TimelineStore.getFullState() })
+  
+  
   handleDateSet: (date) ->
-    @setState({ current: date })
+    @setState({ current: moment(date).startOf('month') })
 
 
   setCurrentDate: (date) ->
@@ -37,34 +44,31 @@ module.exports = React.createClass
 
   gatherDates: ->
     months  = Math.ceil(moment.duration(@state.till - @state.from).as('months'))
+    dates   = Object.keys(@state.timeline)
 
     _.map [0..months], (i) =>
       now   = moment(@state.from).add(i, 'month').startOf('month')
       key   = now.format('YYYY-MM-DD')
       title = now.format('MMM YYYY')
       
-      className = React.addons.classSet({ current: @state.current == key })
+      className = React.addons.classSet
+        current:    @state.current.isSame(now)
+        effective:  _.contains(dates, key)
         
-      <td key={key} className={className} data-title={title} onClick={@setCurrentDate.bind(@, key)}>
+      <td key={key} className={className} data-title={title} onClick={@setCurrentDate.bind(@, now)}>
         {<span className="year">{now.format('YYYY')}</span> if now.month() == 0}
         &nbsp;
       </td>
   
 
-  # componentDidMount: ->
-  #   @dispatcherToken = CloudFlux.Dispatcher.register (payload) =>
-  #     if payload.action.type == 'timeline:set-current'
-  #       @setState({ current: payload.action.date })
-
-
   getInitialState: ->
-    from  = moment(new Date(@props.from))
-    till  = moment(new Date(@props.till))
+    from  = moment(new Date(@props.from)).startOf('month')
+    till  = moment(new Date(@props.till)).startOf('month')
 
     from:     from
     till:     till
-    current:  till.format('YYYY-MM-DD')
-    store:    null
+    current:  till
+    timeline: {}
 
 
   render: ->
