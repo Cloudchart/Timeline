@@ -1,7 +1,7 @@
 # @cjsx React.DOM
 
 
-PersonForm = require('components/person_form')
+PersonFormController = require('components/person_form_controller')
 
 
 # Exports
@@ -15,6 +15,6 @@ module.exports = React.createClass
   render: ->
     <div className="modal-window">
       <div className="modal-container">
-        <PersonForm />
+        <PersonFormController />
       </div>
     </div>

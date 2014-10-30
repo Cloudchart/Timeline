@@ -1,45 +1,5 @@
 # @cjsx React.DOM
 
-tag = React.DOM
-
-CloudFlux = require('cloud_flux')
-
-TimelineStore = require('stores/timeline_store')
-
-
-# Schema
-#
-Schema =
-  
-  title:  'Person'
-  type:   'object'
-
-  properties:
-    uuid:
-      type: 'string'
-    name:
-      type: 'string'
-    occupation:
-      type:     'string'
-      timeline: true
-    salary:
-      type:     'integer'
-      timeline: true
-    stock:
-      type:     'number'
-      timeline: true
-    hired_on:
-      type: 'date'
-    fired_on:
-      type: 'date'
-    previous_occupations:
-      type: 'array'
-      items:
-        type: 'string'
-      uniqueItems:  true
-
-  required: ['name']
-
 
 # Fields
 #
@@ -84,33 +44,13 @@ module.exports = React.createClass
 
   displayName: 'Person Form'
   
-  mixins: [
-    CloudFlux.mixins.Actions
-    CloudFlux.mixins.StoreListener
-  ]
-  
-  
-  storesToListen: [
-    TimelineStore
-  ]
-  
-  
-  handleStoreChange: ->
-    defaultState = _.reduce Schema.properties, (memo, value, key) ->
-      memo[key] = '' if value.timeline
-      memo
-    , {}
-
-    @setState(_.extend defaultState, TimelineStore.getState())
-  
-  
   getStateForField: (name) ->
-    @state[name]
+    @state.attributes.get(name) || ''
   
   
   setStateForField: (name, value) ->
-    state = {} ; state[name] = value
-    @setState(state)
+    @setState
+      attributes: @state.attributes.set(name, value)
   
   
   gatherFields: ->
@@ -128,35 +68,39 @@ module.exports = React.createClass
       </label>
   
   
-  handleFieldChange: (key, event) ->
-    @setStateForField(key, event.target.value)
+  handleFieldChange: (name, event) ->
+    @setStateForField(name, event.target.value)
   
   
-  handleFieldBlur: (name) ->
-    if Schema.properties[name].timeline
-      TimelineStore.update(name, @state[name])
+  handleFieldBlur: ->
+    @props.onFormUpdate(@state.attributes.toJS())
   
   
   handleSubmit: (event) ->
     event.preventDefault()
+    @props.onFormSubmit(@state.attributes.toJS())
   
   
-  componentDidMount: ->
-    @triggerAction('timeline:date:set', @state.current_date)
+  getStateFromProps: (props) ->
+    attributes: Immutable.fromJS(props.attributes)
+  
+  
+  componentWillReceiveProps: (nextProps) ->
+    @setState(@getStateFromProps(nextProps))
+  
+  
+  getDefaultProps: ->
+    onFormUpdate: _.noop
+    onFormSubmit: _.noop
   
   
   getInitialState: ->
-    current_date:           moment().startOf('month')
-    name:                   ''
-    occupation:             ''
-    salary:                 ''
-    stock:                  ''
-    hired_on:               ''
-    fired_on:               ''
-    previous_occupations:   ''
+    @getStateFromProps(@props)
 
 
   render: ->
+    submit_button = <button>Create person</button>
+
     <form className="person" onSubmit={@handleSubmit}>
       <section>
         <aside className="avatar">
@@ -165,7 +109,7 @@ module.exports = React.createClass
 
         <fieldset>
           <label className="name">
-            <input autoFocus="true" placeholder="Name Surname" value={@state.name} onChange={@handleFieldChange.bind(null, 'name')} />
+            <input autoFocus="true" placeholder="Name Surname" value={@getStateForField('name')} onChange={@handleFieldChange.bind(null, 'name')} />
           </label>
           
           {@gatherFields()}
@@ -174,6 +118,6 @@ module.exports = React.createClass
 
       <footer>
         <div className="spacer" />
-        <button>Create person</button>
+        {submit_button}
       </footer>
     </form>

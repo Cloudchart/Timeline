@@ -16,6 +16,7 @@
 //= require flux
 //= require immutable
 //= require moment
+//= require transducers
 //= require_tree .
 
 require('main')

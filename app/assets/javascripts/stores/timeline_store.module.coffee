@@ -15,29 +15,18 @@ __data    = {}
 Store =
   
   
-  getFullState: ->
-    __data
-  
-  
-  getCurrentState: ->
-    
-
-
   getState: ->
-    date = @date.format('YYYY-MM-DD')
-    
-    dates = _.chain(__data).map((value, key) -> key).filter((key) -> key <= date).sortBy((key) -> key).value()
-    
-    _.reduce dates, (memo, date) ->
-      _.each __data[date], (value, key) -> memo[key] = value
-      memo
-    , {}
+    __data
 
 
-  update: (name, value) ->
-    (__data[@date.format('YYYY-MM-DD')] ?= {})[name] = value
+  update: (name, value, date = @date) ->
+    (__data[name] ||= {})[moment(date).format('YYYY-DD')] = value
     @emitChange()
-    
+  
+  
+  remove: (name, date = @date) ->
+    delete (__data[name] ||= {})[moment(date).format('YYYY-DD')]
+    @emitChange()
 
 
   emitChange: ->

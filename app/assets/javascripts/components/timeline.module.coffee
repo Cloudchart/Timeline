@@ -31,7 +31,6 @@ module.exports = React.createClass
   
   
   handleStoreChange: ->
-    @setState({ timeline: TimelineStore.getFullState() })
   
   
   handleDateSet: (date) ->
