@@ -53,3 +53,8 @@ group :development, :test do
   # Quiet Assets turns off the Rails asset pipeline log
   gem 'quiet_assets'
 end
+
+
+# Heroku
+#
+gem 'rails_12factor', group: :production
