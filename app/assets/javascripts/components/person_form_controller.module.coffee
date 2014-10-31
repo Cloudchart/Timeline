@@ -58,9 +58,8 @@ module.exports = React.createClass
 
   handleFormUpdate: (attributes) ->
     _.each filterChangedAttributes(@state.attributes, attributes), (value, name) =>
+      @setState({ attributes: @state.attributes.set(name, value) })
       TimelineStore.set(name, value) if Schema.properties[name].timeline
-    
-    #@setState({ attributes: @state.attributes.merge(attributes) })
   
   
   handleFormSubmit: (attributes) ->
