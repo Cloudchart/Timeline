@@ -6,10 +6,22 @@ TimelineStore   = require('stores/timeline_store')
 Schema          = require('schema/person')
 
 
+
+filterTimelineProperties = (properties) ->
+  transducers.into(
+    []
+    transducers.compose(
+      transducers.filter  (kv) -> kv[1].timeline
+      transducers.map     (kv) -> kv[0]
+    )
+    properties
+  )
+
+
 filterChangedAttributes = (a, b) ->
   transducers.seq(
     b
-    transducers.filter (kv) -> kv[1] isnt a[kv[0]]
+    transducers.filter (x) -> x[1] isnt a.get(x[0])
   )
 
 
@@ -29,23 +41,26 @@ module.exports = React.createClass
   
   
   handleStoreChange: ->
-    attributes = _.reduce TimelineStore.getState(), (memo, value, name) ->
-      unless _.isEmpty(value)
-        memo[name]            = _.values(value)[0]
-        memo["#{name}_date"]  = _.keys(value)[0]
-      memo
-    , {}
-    
     @setState
       date:       TimelineStore.date
-      attributes: attributes
+      attributes: @gatherAttributes()
+  
+  
+  gatherAttributes: ->
+    timeline_properties = filterTimelineProperties(Schema.properties)
+    
+    timeline_attributes = _.reduce timeline_properties, (memo, name) ->
+      memo[name] = TimelineStore.getValue(name) || '' ; memo
+    , {}
+    
+    @state.attributes.merge(timeline_attributes)
 
 
   handleFormUpdate: (attributes) ->
     _.each filterChangedAttributes(@state.attributes, attributes), (value, name) =>
-      TimelineStore.set(name, value)
+      TimelineStore.set(name, value) if Schema.properties[name].timeline
     
-    @setState({ attributes: attributes })
+    #@setState({ attributes: @state.attributes.merge(attributes) })
   
   
   handleFormSubmit: (attributes) ->
@@ -53,7 +68,7 @@ module.exports = React.createClass
   
   
   getDefaultProps: ->
-    attributes: {}
+    attributes: new Immutable.Map
   
   
   getInitialState: ->
@@ -65,5 +80,5 @@ module.exports = React.createClass
     <PersonForm
       onFormUpdate  = {@handleFormUpdate}
       onFormSubmit  = {@handleFormSubmit}
-      attributes    = {@state.attributes}
+      attributes    = {@state.attributes.toJS()}
     />

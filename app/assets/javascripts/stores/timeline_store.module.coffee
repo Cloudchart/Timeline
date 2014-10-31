@@ -19,24 +19,21 @@ lastValueFor = (name, now) ->
     .filter (date) -> date <= now
     .last()
     .value()
-  
-  result = {}
 
-  if date
-    result[date] = __data[name][date]
-  else
-    result
+  __data[name]?[date]
   
-  result
-
 
 # Store
 #
 Store =
   
   
+  getFullState: ->
+    __data
+  
+  
   getState: (date = @date) ->
-    date = date.format('YYYY-MM')
+    date = moment(date).format('YYYY-MM')
 
     _.reduce __data, (memo, values, name) ->
       memo[name] = lastValueFor(name, date)
@@ -44,10 +41,26 @@ Store =
     , {}
   
   
+  getValue: (name, date = @date) ->
+    lastValueFor(name, moment(date).format('YYYY-MM'))
+  
+  
   set: (name, value, date = @date) ->
     __data[name] ||= {} ; value = value.trim() ; date = moment(date).format('YYYY-MM')
 
     __data[name][date] = value
+    
+    dates = _.reduce Object.keys(__data[name]).sort(), (memo, date, index, dates) ->
+      # Do not keep value if it is the same as previous
+      return memo if index > 0 and __data[name][dates[index - 1]] == __data[name][date]
+      
+      # Do not keep value if it is empty
+      return memo if _.isEmpty(__data[name][date])
+      
+      memo.push(date) ; memo
+    , []
+    
+    __data[name] = _.pick(__data[name], dates)
     
     @emitChange()
 

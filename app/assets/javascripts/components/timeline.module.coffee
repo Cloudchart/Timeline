@@ -31,6 +31,13 @@ module.exports = React.createClass
   
   
   handleStoreChange: ->
+    timeline = _.reduce TimelineStore.getFullState(), (memo, values, name) ->
+      _.each values, (value, date) -> (memo[date] ||= {})[name] = value
+      memo
+    , {}
+    
+    @setState
+      timeline: timeline
   
   
   handleDateSet: (date) ->
@@ -47,7 +54,7 @@ module.exports = React.createClass
 
     _.map [0..months], (i) =>
       now   = moment(@state.from).add(i, 'month').startOf('month')
-      key   = now.format('YYYY-MM-DD')
+      key   = now.format('YYYY-MM')
       title = now.format('MMM YYYY')
       
       className = React.addons.classSet

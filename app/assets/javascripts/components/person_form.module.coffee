@@ -109,7 +109,13 @@ module.exports = React.createClass
 
         <fieldset>
           <label className="name">
-            <input autoFocus="true" placeholder="Name Surname" value={@getStateForField('name')} onChange={@handleFieldChange.bind(null, 'name')} />
+            <input
+              autoFocus     = {true}
+              placeholder   = "Name Surname"
+              value         = {@getStateForField('name')}
+              onBlur        = {@handleFieldBlur.bind(null, 'name')}
+              onChange      = {@handleFieldChange.bind(null, 'name')}
+            />
           </label>
           
           {@gatherFields()}
