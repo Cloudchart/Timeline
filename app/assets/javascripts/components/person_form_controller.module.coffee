@@ -29,24 +29,21 @@ module.exports = React.createClass
   
   
   handleStoreChange: ->
-    attributes = TimelineStore.getState()
-
-    currentDate = @state.date.format('YYYY-MM')
-
-    console.log _.reduce attributes, (memo, value, name) ->
+    attributes = _.reduce TimelineStore.getState(), (memo, value, name) ->
+      unless _.isEmpty(value)
+        memo[name]            = _.values(value)[0]
+        memo["#{name}_date"]  = _.keys(value)[0]
       memo
     , {}
     
     @setState
-      date: TimelineStore.date
+      date:       TimelineStore.date
+      attributes: attributes
 
 
   handleFormUpdate: (attributes) ->
     _.each filterChangedAttributes(@state.attributes, attributes), (value, name) =>
-      if value.trim().length == 0
-        TimelineStore.remove(name)
-      else
-        TimelineStore.update(name, value)
+      TimelineStore.set(name, value)
     
     @setState({ attributes: attributes })
   

@@ -10,22 +10,45 @@ __date    = moment().startOf('month')
 __data    = {}
 
 
+# Functions
+#
+lastValueFor = (name, now) ->
+  date = _.chain(__data[name])
+    .keys()
+    .sort()
+    .filter (date) -> date <= now
+    .last()
+    .value()
+  
+  result = {}
+
+  if date
+    result[date] = __data[name][date]
+  else
+    result
+  
+  result
+
+
 # Store
 #
 Store =
   
   
-  getState: ->
-    __data
+  getState: (date = @date) ->
+    date = date.format('YYYY-MM')
 
-
-  update: (name, value, date = @date) ->
-    (__data[name] ||= {})[moment(date).format('YYYY-DD')] = value
-    @emitChange()
+    _.reduce __data, (memo, values, name) ->
+      memo[name] = lastValueFor(name, date)
+      memo
+    , {}
   
   
-  remove: (name, date = @date) ->
-    delete (__data[name] ||= {})[moment(date).format('YYYY-DD')]
+  set: (name, value, date = @date) ->
+    __data[name] ||= {} ; value = value.trim() ; date = moment(date).format('YYYY-MM')
+
+    __data[name][date] = value
+    
     @emitChange()
 
 
