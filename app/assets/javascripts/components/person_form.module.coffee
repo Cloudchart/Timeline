@@ -5,6 +5,10 @@
 #
 Fields = [
   {
+    key:          'name'
+    placeholder:  'Name Surname'
+  }
+  {
     key:          'occupation'
     title:        'Occupation'
     placeholder:  'Occupation'
@@ -35,7 +39,25 @@ Fields = [
     placeholder:  'Previous Occupations'
   }
 ]
-  
+
+
+# Functions
+#
+createField = (props) ->
+  value = props.getValue.call(null, props.key)
+  title = <span>{props.title}</span> if props.title
+
+  <label key={props.key} className={props.className}>
+    {title}
+    <input
+      autoFocus   = {props.autoFocus == props.key}
+      placeholder = {props.placeholder}
+      value       = {value}
+      onBlur      = {props.onUpdate.bind(null, props.key)}
+      onChange    = {props.onChange.bind(null, props.key)}
+    />
+  </label>
+
 
 # Exports
 #
@@ -54,25 +76,26 @@ module.exports = React.createClass
   
   
   gatherFields: ->
+    
+    commonProps =
+      autoFocus:  'name'
+      getValue:   @getStateForField
+      onUpdate:   @handleFieldUpdate
+      onChange:   @handleFieldChange
+    
     _.map Fields, (field) =>
-      title = <span>{field.title}</span> if field.title
-
-      <label key={field.key} className={field.key}>
-        {title}
-        <input
-          placeholder   = {field.placeholder}
-          value         = {@getStateForField(field.key)}
-          onBlur        = {@handleFieldBlur.bind(null, field.key)}
-          onChange      = {@handleFieldChange.bind(null, field.key)}
-        />
-      </label>
+      createField _.extend {}, commonProps,
+        key:          field.key
+        className:    field.key
+        placeholder:  field.placeholder   || ''
+        title:        field.title         || ''
   
   
   handleFieldChange: (name, event) ->
     @setStateForField(name, event.target.value)
   
   
-  handleFieldBlur: ->
+  handleFieldUpdate: ->
     @props.onFormUpdate(@state.attributes.toJS())
   
   
@@ -99,7 +122,7 @@ module.exports = React.createClass
 
 
   render: ->
-    submit_button = <button>Create person</button>
+    submit_button = <button>Create person <i className="fa fa-check" /></button>
 
     <form className="person" onSubmit={@handleSubmit}>
       <section>
@@ -108,16 +131,6 @@ module.exports = React.createClass
         </aside>
 
         <fieldset>
-          <label className="name">
-            <input
-              autoFocus     = {true}
-              placeholder   = "Name Surname"
-              value         = {@getStateForField('name')}
-              onBlur        = {@handleFieldBlur.bind(null, 'name')}
-              onChange      = {@handleFieldChange.bind(null, 'name')}
-            />
-          </label>
-          
           {@gatherFields()}
         </fieldset>
       </section>

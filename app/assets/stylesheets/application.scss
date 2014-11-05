@@ -1,5 +1,7 @@
 @import 'normalize';
 @import 'bourbon';
+@import 'font-awesome-sprockets';
+@import 'font-awesome';
 
 html {
   @include box-sizing(border-box);

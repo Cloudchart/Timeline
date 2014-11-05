@@ -39,6 +39,9 @@ gem 'sprockets-coffee-react'
 # Bourbon
 gem 'bourbon'
 
+# Font Awesome
+gem 'font-awesome-sass'
+
 
 group :development, :test do
   # Call 'debugger' anywhere in the code to stop execution and get a debugger console

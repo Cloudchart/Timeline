@@ -42,7 +42,6 @@ module.exports = React.createClass
   
   handleStoreChange: ->
     @setState
-      date:       TimelineStore.date
       attributes: @gatherAttributes()
   
   
@@ -58,12 +57,16 @@ module.exports = React.createClass
 
   handleFormUpdate: (attributes) ->
     _.each filterChangedAttributes(@state.attributes, attributes), (value, name) =>
-      @setState({ attributes: @state.attributes.set(name, value) })
-      TimelineStore.set(name, value) if Schema.properties[name].timeline
+
+      if Schema.properties[name].timeline
+        TimelineStore.set(name, value)
+      else
+        @setState({ attributes: @state.attributes.set(name, value) })
   
   
   handleFormSubmit: (attributes) ->
-    @setState({ attributes: attributes })
+    @handleFormUpdate(attributes)
+    console.log JSON.stringify(_.extend attributes, TimelineStore.getFullState())
   
   
   getDefaultProps: ->
@@ -71,7 +74,6 @@ module.exports = React.createClass
   
   
   getInitialState: ->
-    date:       TimelineStore.date
     attributes: @props.attributes
 
 
