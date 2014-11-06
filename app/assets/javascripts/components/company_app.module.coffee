@@ -1,7 +1,7 @@
 # @cjsx React.DOM
 
 
-People = React.createFactory(require('components/people'))
+People = require('components/people')
 
 
 # Main

@@ -1,8 +1,7 @@
 # Render inline components
 #
 _.each document.querySelectorAll('[data-react-class]'), (node) ->
-  reactComponent  = try React.createFactory(require(node.dataset.reactClass))
-  
+  reactComponent  = React.createFactory require(node.dataset.reactClass)
   
   if reactComponent
     props = node.dataset.reactProps
