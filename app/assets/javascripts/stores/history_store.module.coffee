@@ -42,7 +42,7 @@ Store =
   
   # Set
   #
-  set: (id, attributes = {}) ->
+  set: (id, attributes = {}, skip_emit = false) ->
     item = Immutable.fromJS(attributes)
 
     # Validate presence of required fields
@@ -56,9 +56,21 @@ Store =
     
     __data = __data.set(id, item)
     
-    @emitChange()
+    @emitChange(id) unless skip_emit
 
     @get(id)
+  
+  
+  # Remove
+  #
+  remove: (id, skip_emit = false) ->
+    item = @get('id')
+
+    __data = __data.remove(id)
+    
+    @emitChange(id) unless skip_emit
+    
+    item
   
   
   # Build
@@ -87,8 +99,8 @@ Store =
   
   # Emit Change
   #
-  emitChange: ->
-    @emit('change')
+  emitChange: (id) ->
+    @emit('change', @, id)
 
 
 # Store as Event Emitter
