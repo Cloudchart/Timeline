@@ -9,6 +9,19 @@ uuid          = require('utils/uuid')
 __data = new Immutable.Map
 
 
+# Functions
+#
+validateItem = (item) ->
+  # Validate presence of required fields
+  #
+  _.each ['owner_id', 'owner_type', 'name', 'data'], (name) ->
+    throw new Error("HistoryStore.set: #{name} should be defined.") unless item.get(name)
+
+  # Validates data field is a Immutable.Map
+  #
+  throw new Error("HistoryStore.set: data should be a Map.") unless item.get('data') instanceof Immutable.Map
+
+
 # Store
 #
 # Attributes
@@ -44,16 +57,9 @@ Store =
   #
   set: (id, attributes = {}, skip_emit = false) ->
     item = Immutable.fromJS(attributes)
+    
+    validateItem(item)
 
-    # Validate presence of required fields
-    #
-    _.each ['owner_id', 'owner_type', 'name', 'data'], (name) ->
-      throw new Error("HistoryStore.set: #{name} should be defined.") unless item.get(name)
-    
-    # Validates data field is a Immutable.Map
-    #
-    throw new Error("HistoryStore.set: data should be a Map.") unless item.get('data') instanceof Immutable.Map
-    
     __data = __data.set(id, item)
     
     @emitChange(id) unless skip_emit
