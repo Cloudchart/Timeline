@@ -25,7 +25,7 @@ module.exports = React.createClass
     TimelineStore
   ]
   
-
+  
   getFluxActions: ->
     'timeline:date:set': @handleDateSet
   
