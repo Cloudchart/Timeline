@@ -9,7 +9,7 @@ PersonFormController = require('components/person_form_controller')
 module.exports = React.createClass
 
 
-  displayName: 'Modal Window'
+  displayName: 'ModalWindow'
 
   
   render: ->

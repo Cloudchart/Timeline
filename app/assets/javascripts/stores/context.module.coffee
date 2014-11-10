@@ -1,56 +1,67 @@
 Cursor = require('immutable_cursor')
 
 
-__data  = new Immutable.Map
-__clbk  = {}
-__crsr  = null
+# Callbacks
+#
+__callbacks = {}
+
+__data      = new Immutable.Map
+__prev_data = new Immutable.Map
+__clbk      = {}
+__crsr      = null
 
 cursorUpdater = (next_data, prev_data, path) ->
-  return if Immutable.is(next_data.getIn(path), prev_data.getIn(path))
+  __data      = next_data
+  __prev_data = prev_data
+  __crsr      = Cursor __data, cursorUpdater
   
-  __data = next_data
-  __crsr = Cursor __data, cursorUpdater
-
-  path_as_string = path.join('.')
-  
-  _.chain(Object.keys(__clbk))
-    .filter (path) -> path_as_string.slice(0, path.length) == path
-    .sortBy (path) -> path
-    .each   (path) -> _.invoke __clbk[path], 'call'
+  _.invoke (__callbacks[''] || []), 'call'
 
 __crsr = Cursor __data, cursorUpdater
 
 
+pathAsString = (path) ->
+  switch typeof path
+    when 'string' then path
+    when 'number' then path.toString()
+    else
+      if path? then path.join('.') else ''
+
+
+addListener = (path, callback) ->
+  stringPath  = pathAsString(path)
+  callbacks   = __callbacks[stringPath] || []
+  
+  callbacks.push(callback) unless _.contains(callbacks, callback)
+  
+  __callbacks[stringPath] = callbacks
+  
+  
+
+addGlobalListener = (callback) ->
+  addListener([], callback)
+
+
 Context =
   
+  
+  init: (root) ->
+    
+    render = -> root.forceUpdate()
+    
+    addGlobalListener ->
+      return unless root.isMounted()
+      render()
+  
+
   get: (path) ->
-    path = path.split('.') if _.isString(path)
-    path = [path] unless _.isArray(path)
-    
-    __crsr.cursor(path)
+    __crsr.cursor(pathAsString(path).split('.'))
   
-
-  on: (path, callback) ->
-    path = path.split('.') if _.isString(path)
-    path = [path] unless _.isArray(path)
-
-    path = path.join('.')
-    
-    (__clbk[path] ||= []).push(callback) if _.isFunction(callback)
-
-    null
   
-
-  off: (path, callback) ->
-    path = path.split('.') if _.isString(path)
-    path = [path] unless _.isArray(path)
+  mixin:
     
-    path = path.join('.')
-
-    if __clbk[path]
-      __clbk[path] = _.without(__clbk[path], callback)
-    
-    null
+    shouldComponentUpdate: (prevProps, prevState) ->
+      !Immutable.is(__prev_data.getIn(['timeline', 'date']), __data.getIn(['timeline', 'date']))
 
 
 # Exports

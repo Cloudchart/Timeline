@@ -30,6 +30,9 @@ filterChangedAttributes = (a, b) ->
 module.exports = React.createClass
 
 
+  displayName: 'Person Form Controller'
+
+
   mixins: [
     CloudFlux.mixins.StoreListener
   ]

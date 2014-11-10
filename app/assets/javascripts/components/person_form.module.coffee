@@ -64,8 +64,12 @@ createField = (props) ->
 module.exports = React.createClass
 
 
+  contextTypes: { cloudflux: -> }
+
+
   displayName: 'Person Form'
   
+
   getStateForField: (name) ->
     @state.attributes.get(name) || ''
   
