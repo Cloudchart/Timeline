@@ -19,12 +19,13 @@ module.exports = React.createClass
   mixins: [Context.mixin]
 
 
-  handleDateSet: (date) ->
-    @setState({ current: moment(date).startOf('month') })
+  #handleDateSet: (date) ->
+  #  @setState({ current: moment(date).startOf('month') })
 
 
   setCurrentDate: (date) ->
     #@triggerAction('timeline:date:set', date)
+    #@getCursor().update -> date.format('YYYY-MM-DD')
     Context.get('timeline').set('date', date.format('YYYY-MM-DD'))
 
 
@@ -32,6 +33,7 @@ module.exports = React.createClass
     months  = Math.ceil(moment.duration(@state.till - @state.from).as('months'))
     dates   = Object.keys(@state.timeline)
     current = moment(Context.get(['timeline', 'date']).deref()).startOf('month')
+    console.log @getCursor().deref()
     
     _.map [0..months], (i) =>
       now   = moment(@state.from).add(i, 'month').startOf('month')
@@ -46,7 +48,11 @@ module.exports = React.createClass
         {<span className="year">{now.format('YYYY')}</span> if now.month() == 0}
         &nbsp;
       </td>
-  
+    
+  getDefaultProps: ->
+    cursor:
+      'now': ['timeline', 'date']
+
 
   getInitialState: ->
     from  = moment(new Date(@props.from)).startOf('month')
@@ -55,11 +61,9 @@ module.exports = React.createClass
     from:     from
     till:     till
     timeline: {}
-      
-
+    
 
   render: ->
-    console.log 'render timeline'
     <table>
       <tbody>
         <tr>
