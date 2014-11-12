@@ -1,3 +1,8 @@
+__currData  = new Immutable.Map
+__prevData  = null
+__callbacks = {}
+
+
 CURSOR_PATH_SEPARATOR = '.'
 
 
@@ -6,68 +11,66 @@ pathAsString = (path) ->
     when 'string' then path
     when 'number' then path.toString()
     else
-      if path? then path.join('.') else ''
+      if path? then path.join(CURSOR_PATH_SEPARATOR) else ''
+
 
 pathAsArray = (path) ->
   pathAsString(path).split(CURSOR_PATH_SEPARATOR).filter (part) -> !!part
 
 
-# My Cursor
+ensureImmutable = (value) ->
+  if Immutable.Iterable.isIterable(value) then value else Immutable.fromJS(value)
+
+
+# Cursor Factory
 #
-class Cursor
-  
-  constructor: (data, path, callback) ->
-    @__data     = data
-    @__path     = pathAsArray(path)
-    @__callback = if _.isFunction(callback) then callback else _.noop
+CursorFactory = (path, callback) ->
+  path      = pathAsArray(path)
+  callback  = _.noop unless _.isFunction(callback)
   
   
-  cursor: (path) ->
-    new Cursor(@__data, @__path.concat(pathAsArray(path)), @__callback)
+  updater = (fn) -> callback(fn(), __currData, path)
   
 
-  deref: ->
-    Immutable.fromJS(@__data.getIn(@__path))
-  
-
-  get: (key) ->
-    newData = @__data.getIn(@__path.concat(key))
-    @__callback.call(@, newData, @__data, @__path)
+  Cursor =
+    cursor: (subPath) ->
+      CursorFactory(path.concat(subPath), callback)
   
   
-  set: (key, value) ->
-    newData = @__data.setIn(@__path.concat(key), value)
-    @__callback.call(@, newData, @__data, @__path)
-  
-
-  update: (updater) ->
-    newData = @__data.updateIn(@__path, updater)
-    @__callback.call(@, newData, @__data, @__path)
+    deref: ->
+      ensureImmutable(__currData.getIn(path))
   
   
-  remove: (key) ->
-    newData = @__data.removeIn(@__path)
-    @__callback.call(@, newData, @__data, @__path)
+    get: (key) ->
+      absolutePath = path.concat(key.toString())
+      ensureImmutable(__currData.getIn(absolutePath))
+  
+  
+    set: (key, value) ->
+      absolutePath = path.concat(key.toString())
+      updater -> __currData.setIn(absolutePath, value)
+      @
+  
+
+    update: (fn) ->
+      updater -> __currData.updateIn(path, fn)
+      @
+  
+  
+    remove: (key) ->
+      absolutePath = path.concat(key.toString())
+      updater -> __currData.removeIn(absolutePath)
+      @
+  
 
 
-
-# Callbacks
-#
-__callbacks = {}
-
-__data      = new Immutable.Map
-__prev_data = new Immutable.Map
-__clbk      = {}
-__crsr      = null
-
-cursorUpdater = (next_data, prev_data, path) ->
-  __data      = next_data
-  __prev_data = prev_data
-  __crsr      = new Cursor __data, [], cursorUpdater
+GlobalDataUpdater = (next_data, prev_data, path) ->
+  __currData  = next_data
+  __prevData  = prev_data
   
   _.invoke (__callbacks[''] || []), 'call'
-
-__crsr = new Cursor __data, [], cursorUpdater
+  
+  __currData
 
 
 addListener = (path, callback) ->
@@ -84,6 +87,8 @@ addGlobalListener = (callback) ->
   addListener([], callback)
 
 
+# Context
+#
 Context =
   
   
@@ -93,27 +98,13 @@ Context =
     
     addGlobalListener ->
       return unless root.isMounted()
-      render()
-  
-
-  get: (path) ->
-    __crsr.cursor(path)
+      requestAnimationFrame render
   
 
   cursor: (path) ->
-    __crsr.cursor(path)
+    CursorFactory path, GlobalDataUpdater
   
   
-  mixin:
-    
-    shouldComponentUpdate: (prevProps, prevState) ->
-      !Immutable.is(__prev_data.getIn(['timeline', 'date']), __data.getIn(['timeline', 'date']))
-    
-    
-    getCursor: ->
-      Context.cursor(['timeline', 'date'])
-
-
 # Exports
 #
 module.exports = Context

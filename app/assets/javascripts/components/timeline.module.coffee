@@ -16,24 +16,14 @@ module.exports = React.createClass
   displayName: 'Timeline'
   
   
-  mixins: [Context.mixin]
-
-
-  #handleDateSet: (date) ->
-  #  @setState({ current: moment(date).startOf('month') })
-
-
   setCurrentDate: (date) ->
-    #@triggerAction('timeline:date:set', date)
-    #@getCursor().update -> date.format('YYYY-MM-DD')
-    Context.get('timeline').set('date', date.format('YYYY-MM-DD'))
+    @props.cursor.set('date', date.format('YYYY-MM-DD'))
 
 
   gatherDates: ->
     months  = Math.ceil(moment.duration(@state.till - @state.from).as('months'))
     dates   = Object.keys(@state.timeline)
-    current = moment(Context.get(['timeline', 'date']).deref()).startOf('month')
-    console.log @getCursor().deref()
+    current = moment(@props.cursor.get('date')).startOf('month')
     
     _.map [0..months], (i) =>
       now   = moment(@state.from).add(i, 'month').startOf('month')
@@ -48,10 +38,15 @@ module.exports = React.createClass
         {<span className="year">{now.format('YYYY')}</span> if now.month() == 0}
         &nbsp;
       </td>
-    
+  
+  
+  componentDidMount: ->
+    unless @props.cursor.get('date')
+      @props.cursor.set('date', moment().startOf('month').format('YYYY-MM-DD'))
+  
+  
   getDefaultProps: ->
-    cursor:
-      'now': ['timeline', 'date']
+    cursor: Context.cursor('timeline')
 
 
   getInitialState: ->

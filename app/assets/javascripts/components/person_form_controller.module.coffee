@@ -1,5 +1,6 @@
 # @cjsx
 
+Context         = require('stores/context')
 CloudFlux       = require('cloud_flux')
 PersonForm      = require('components/person_form')
 TimelineStore   = require('stores/timeline_store')
@@ -69,15 +70,17 @@ module.exports = React.createClass
   
   handleFormSubmit: (attributes) ->
     @handleFormUpdate(attributes)
-    console.log JSON.stringify(_.extend attributes, TimelineStore.getFullState())
   
   
   getDefaultProps: ->
     attributes: new Immutable.Map
+    cursor:
+      timeline: Context.cursor('timeline')
   
   
   getInitialState: ->
     attributes: @props.attributes
+    timeline:   {}
 
 
   render: ->

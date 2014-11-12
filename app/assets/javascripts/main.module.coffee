@@ -20,7 +20,7 @@ _.each document.querySelectorAll('[data-react-class]'), (node) ->
         Context.init(@)
     
       render: ->
-        React.withContext { timeline: Context }, -> React.createElement(reactComponent, props)
+        React.withContext { cloud: Context }, -> React.createElement(reactComponent, props)
       
     # Render root component
     #
