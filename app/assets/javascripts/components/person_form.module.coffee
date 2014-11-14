@@ -50,10 +50,13 @@ createField = (props) ->
   <label key={props.key} className={props.className}>
     {title}
     <input
+      ref         = {props.ref}
       autoFocus   = {props.autoFocus == props.key}
+      className   = { if props.errors then 'error' else null}
       placeholder = {props.placeholder}
       value       = {value}
       onBlur      = {props.onUpdate.bind(null, props.key)}
+      onFocus     = {props.onFocus.bind(null, props.key)}
       onChange    = {props.onChange.bind(null, props.key)}
     />
   </label>
@@ -83,6 +86,7 @@ module.exports = React.createClass
     
     commonProps =
       autoFocus:  'name'
+      onFocus:    @handleFieldFocus
       getValue:   @getStateForField
       onUpdate:   @handleFieldUpdate
       onChange:   @handleFieldChange
@@ -90,17 +94,28 @@ module.exports = React.createClass
     _.map Fields, (field) =>
       createField _.extend {}, commonProps,
         key:          field.key
+        ref:          field.key
         className:    field.key
-        placeholder:  field.placeholder   || ''
+        placeholder:  @props.placeholders[field.key] || field.placeholder   || ''
         title:        field.title         || ''
+        errors:       @props.errors[field.key]
   
   
   handleFieldChange: (name, event) ->
     @setStateForField(name, event.target.value)
   
   
+  getAttributes: ->
+    @state.attributes.toJS()
+  
+  
   handleFieldUpdate: ->
-    @props.onFormUpdate(@state.attributes.toJS())
+    @props.onFieldFocus(null)
+    @props.onFormUpdate(@getAttributes())
+  
+  
+  handleFieldFocus: (name) ->
+    @props.onFieldFocus(name)
   
   
   handleSubmit: (event) ->
@@ -116,7 +131,13 @@ module.exports = React.createClass
     @setState(@getStateFromProps(nextProps))
   
   
+  componentDidUpdate: (prevProps, prevState) ->
+    if component = @refs[@props.focus]
+      component.getDOMNode().focus()
+  
+  
   getDefaultProps: ->
+    onFieldFocus: _.noop
     onFormUpdate: _.noop
     onFormSubmit: _.noop
   

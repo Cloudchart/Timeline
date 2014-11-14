@@ -1,6 +1,7 @@
 # @cjsx React.DOM
 
 
+Context = require('stores/context')
 PersonFormController = require('components/person_form_controller')
 
 
@@ -13,8 +14,14 @@ module.exports = React.createClass
 
   
   render: ->
+    cursor =
+      date:                 Context.cursor(['timeline', 'date'])
+      keepFocus:            Context.cursor(['timeline', 'keep-focus'])
+      attributes:           Context.cursor(['timeline', 'attributes'])
+      timelineAttributes:   Context.cursor(['timeline', 'timeline-attributes'])
+    
     <div className="modal-window">
       <div className="modal-container">
-        <PersonFormController />
+        <PersonFormController cursor={ cursor } />
       </div>
     </div>

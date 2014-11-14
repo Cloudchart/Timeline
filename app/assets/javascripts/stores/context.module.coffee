@@ -33,17 +33,22 @@ CursorFactory = (path, callback) ->
   
 
   Cursor =
+    
+    isChanged: ->
+      !Immutable.is(__currData.getIn(path), __prevData.getIn(path))
+    
+
     cursor: (subPath) ->
       CursorFactory(path.concat(subPath), callback)
   
   
-    deref: ->
-      ensureImmutable(__currData.getIn(path))
+    deref: (notSetValue) ->
+      __currData.getIn(path, notSetValue)
   
   
-    get: (key) ->
+    get: (key, notSetValue) ->
       absolutePath = path.concat(key.toString())
-      ensureImmutable(__currData.getIn(absolutePath))
+      __currData.getIn(absolutePath, notSetValue)
   
   
     set: (key, value) ->
@@ -55,8 +60,8 @@ CursorFactory = (path, callback) ->
     update: (fn) ->
       updater -> __currData.updateIn(path, fn)
       @
-  
-  
+    
+
     remove: (key) ->
       absolutePath = path.concat(key.toString())
       updater -> __currData.removeIn(absolutePath)

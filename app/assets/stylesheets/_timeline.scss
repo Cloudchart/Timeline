@@ -55,6 +55,10 @@ $timeline-z-index: 2000;
         }
       }
       
+      &.range {
+        background-color: hsl(120, 50%, 75%);
+      }
+      
       &:hover {
         &::before,
         &::after {

@@ -18,31 +18,44 @@ module.exports = React.createClass
   
   setCurrentDate: (date) ->
     @props.cursor.set('date', date.format('YYYY-MM-DD'))
-
-
+  
+  
   gatherDates: ->
-    months  = Math.ceil(moment.duration(@state.till - @state.from).as('months'))
-    dates   = Object.keys(@state.timeline)
-    current = moment(@props.cursor.get('date')).startOf('month')
+    months      = Math.ceil(moment.duration(@state.till - @state.from).as('months'))
+    current     = moment(@props.cursor.get('date')).startOf('month')
+    
+    dates       = _.reduce @props.cursor.get('timeline-attributes', {}), (memo, values, name) =>
+      _.each values, (value, date) => memo.push(date)
+      memo
+    , []
+    
     
     _.map [0..months], (i) =>
       now   = moment(@state.from).add(i, 'month').startOf('month')
-      key   = now.format('YYYY-MM')
+      key   = now.format('YYYY-MM-DD')
       title = now.format('MMM YYYY')
       
       className = React.addons.classSet
         current:    current.isSame(now)
         effective:  _.contains(dates, key)
-        
+      
       <td key={key} className={className} data-title={title} onClick={@setCurrentDate.bind(@, now)}>
         {<span className="year">{now.format('YYYY')}</span> if now.month() == 0}
         &nbsp;
       </td>
   
   
+  handleMouseDown: ->
+    @props.cursor.set('keep-focus', @props.cursor.get('focus'))
+  
+  
   componentDidMount: ->
     unless @props.cursor.get('date')
       @props.cursor.set('date', moment().startOf('month').format('YYYY-MM-DD'))
+  
+  
+  shouldComponentUpdate: (nextProps, nextState) ->
+    nextProps.cursor.isChanged()
   
   
   getDefaultProps: ->
@@ -59,7 +72,7 @@ module.exports = React.createClass
     
 
   render: ->
-    <table>
+    <table onMouseDown={@handleMouseDown}>
       <tbody>
         <tr>
           {@gatherDates()}
