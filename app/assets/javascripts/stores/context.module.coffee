@@ -1,5 +1,5 @@
 __currData  = new Immutable.Map
-__prevData  = null
+__prevData  = new Immutable.Map
 __callbacks = {}
 
 
@@ -44,11 +44,20 @@ CursorFactory = (path, callback) ->
   
     deref: (notSetValue) ->
       __currData.getIn(path, notSetValue)
-  
-  
+
+
+    derefPrev: (notSetValue) ->
+      __prevData.getIn(path, notSetValue)
+    
+    
     get: (key, notSetValue) ->
       absolutePath = path.concat(key.toString())
       __currData.getIn(absolutePath, notSetValue)
+  
+  
+    getPrev: (key, notSetValue) ->
+      absolutePath = path.concat(key.toString())
+      __prevData.getIn(absolutePath, notSetValue)
   
   
     set: (key, value) ->
@@ -65,6 +74,11 @@ CursorFactory = (path, callback) ->
     remove: (key) ->
       absolutePath = path.concat(key.toString())
       updater -> __currData.removeIn(absolutePath)
+      @
+    
+
+    clear: ->
+      updater -> __currData.removeIn(path)
       @
   
 

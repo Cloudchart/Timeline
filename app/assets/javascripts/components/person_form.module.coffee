@@ -131,11 +131,6 @@ module.exports = React.createClass
     @setState(@getStateFromProps(nextProps))
   
   
-  componentDidUpdate: (prevProps, prevState) ->
-    if component = @refs[@props.focus]
-      component.getDOMNode().focus()
-  
-  
   getDefaultProps: ->
     onFieldFocus: _.noop
     onFormUpdate: _.noop

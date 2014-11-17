@@ -45,8 +45,8 @@ module.exports = React.createClass
       </td>
   
   
-  handleMouseDown: ->
-    @props.cursor.set('keep-focus', @props.cursor.get('focus'))
+  handleMouseDown: (event) ->
+    event.preventDefault()
   
   
   componentDidMount: ->

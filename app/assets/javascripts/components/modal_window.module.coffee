@@ -16,7 +16,6 @@ module.exports = React.createClass
   render: ->
     cursor =
       date:                 Context.cursor(['timeline', 'date'])
-      keepFocus:            Context.cursor(['timeline', 'keep-focus'])
       attributes:           Context.cursor(['timeline', 'attributes'])
       timelineAttributes:   Context.cursor(['timeline', 'timeline-attributes'])
     
