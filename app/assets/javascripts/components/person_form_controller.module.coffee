@@ -25,7 +25,14 @@ module.exports = React.createClass
   
   
   gatherPlaceholders: ->
-    {}
+    now                 = @props.cursor.date.deref({})
+    timelineAttributes  = Immutable.fromJS(@props.cursor.timelineAttributes.deref({}))
+
+    _.reduce @props.timelineAttributesNames, (memo, name) =>
+      if values = timelineAttributes.get(name)
+        memo[name] = values.get(values.filter((v, k) -> k < now).keySeq().max())
+      memo
+    , {}
   
   
   handleFieldFocus: (name) ->
@@ -86,6 +93,9 @@ module.exports = React.createClass
     @props.cursor.attributes.isChanged() or
     @props.cursor.timelineAttributes.isChanged()
     
+  
+  getDefaultProps: ->
+    timelineAttributesNames: _.filter(Object.keys(Schema.properties), (name) -> Schema.properties[name].timeline)
   
   
   render: ->
