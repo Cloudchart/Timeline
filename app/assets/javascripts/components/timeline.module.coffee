@@ -66,7 +66,7 @@ module.exports = React.createClass
       
       hints = @_hints.get(key)?.map (value, name) ->
         <li>
-          {name}: {"#{value.from} -> " if value.from} {value.to}
+          {name}: {"#{value.from} → " if value.from} {value.to}
         </li>
       
       className = React.addons.classSet
