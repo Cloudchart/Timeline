@@ -20,14 +20,18 @@ module.exports = React.createClass
     @props.cursor.set('date', date.format('YYYY-MM-DD'))
   
   
+  filterActiveDates: ->
+    if attribute = @props.cursor.get('focus')
+      Immutable.fromJS(@props.cursor.get('timeline-attributes'))?.get(attribute)?.keySeq().toArray()
+    else
+      Immutable.fromJS(@props.cursor.get('timeline-attributes'))?.valueSeq().flatMap(-> arguments[0].keySeq()).flatten().toSet().toJS()
+  
+  
   gatherDates: ->
     months      = Math.ceil(moment.duration(@state.till - @state.from).as('months'))
     current     = moment(@props.cursor.get('date')).startOf('month')
     
-    dates       = _.reduce @props.cursor.get('timeline-attributes', {}), (memo, values, name) =>
-      _.each values, (value, date) => memo.push(date)
-      memo
-    , []
+    dates       = @filterActiveDates()
     
     
     _.map [0..months], (i) =>
