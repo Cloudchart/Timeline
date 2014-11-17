@@ -1,5 +1,36 @@
 $timeline-z-index: 2000;
 
+
+@mixin timeline-hint {
+  @include position(absolute, null null 100% 50%);
+  @include transform(translateX(-50%) translateY(-10px));
+  
+  background-color: #fff;
+  border: 1px solid #999;
+  font-size: 12px;
+  padding: 10px;
+  text-align: center;
+  
+  > header {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  
+  > ul {
+    display: none;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    
+    > li {
+      margin: 10px 0 0;
+      white-space: nowrap;
+    }
+  }
+  
+}
+
+
 #timeline {
   @include position(fixed, null 20px 20px 20px);
 
@@ -11,49 +42,71 @@ $timeline-z-index: 2000;
   > table {
     width: 100%;
     
+    &:not(:hover) td.current > .hint {
+      visibility: visible;
+    }
+    
     tbody td {
       background-color: #fff;
       border: 1px solid #999;
       position: relative;
       
-      &.effective {
-        background-color: #ccc !important;
-      }
-      
       &.current,
       &:hover {
         background-color: #eee;
         cursor: pointer;
-        
-        &::before {
-          @include box-sizing(border-box);
-          @include position(absolute, null null 100% 50%);
-          @include transform(translateX(-50%) translateY(-10px));
-        
-          background-color: #fff;
-          border: 1px solid #ccc;
-          content: attr(data-title);
-          display: block;
-          font-size: 12px;
-          padding: 5px 10px;
-          white-space: nowrap;
-          z-index: 1;
-        }
-        
-        &::after {
-          @include box-sizing(border-box);
-          @include position(absolute, null null 50% 50%);
-          @include transform(translateX(-50%));
+      }
 
-          border: 10px solid transparent;
-          border-top-color: #ccc;
-          content: '';
+      > .hint {
+        @include timeline-hint;
+        visibility: hidden;
+      }
+      
+      &:hover > .hint {
+        visibility: visible;
+        > ul {
           display: block;
-          width: 20px;
-          height: 20px;
-          z-index: 1;
         }
       }
+      
+      &.effective {
+        background-color: #ccc !important;
+      }
+      
+//      &.current,
+//      &:hover {
+//        background-color: #eee;
+//        cursor: pointer;
+//
+//        &::before {
+//          @include box-sizing(border-box);
+//          @include position(absolute, null null 100% 50%);
+//          @include transform(translateX(-50%) translateY(-10px));
+//
+//          background-color: #fff;
+//          border: 1px solid #ccc;
+//          content: attr(data-title);
+//          display: block;
+//          font-size: 12px;
+//          padding: 5px 10px;
+//          white-space: nowrap;
+//          z-index: 1;
+//        }
+//
+//        &::after {
+//          @include box-sizing(border-box);
+//          @include position(absolute, null null 50% 50%);
+//          @include transform(translateX(-50%));
+//
+//          border: 10px solid transparent;
+//          border-top-color: #ccc;
+//          content: '';
+//          display: block;
+//          width: 20px;
+//          height: 20px;
+//          z-index: 1;
+//        }
+//      }
       
       &.range {
         background-color: hsl(120, 50%, 75%);

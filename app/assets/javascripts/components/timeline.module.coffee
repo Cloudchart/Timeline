@@ -33,7 +33,21 @@ module.exports = React.createClass
       { start: now, finish: values.keySeq().filter((date) -> date > now).min() || till }
     else
       {}
-    
+  
+  
+  gatherHints: ->
+    @_hints ||= do =>
+      attributes = Immutable.fromJS(@props.cursor.get('timeline-attributes', {}))
+      attributes = attributes.reduce (memo, values, name) ->
+        memo.withMutations (mutableMemo) ->
+          
+          values.keySeq().sort().forEach (date, index, dates) ->
+            fromValue = if index > 0 then values.get(dates.get(index - 1))
+            mutableMemo = mutableMemo.setIn([date, name], { from: fromValue, to: values.get(date) })
+
+          #values.forEach (value, date, map) ->
+          #  mutableMemo = mutableMemo.setIn([date, name], { to: value })
+      , new Immutable.Map
   
   
   gatherDates: ->
@@ -43,10 +57,17 @@ module.exports = React.createClass
     dates       = @filterActiveDates()
     range       = @filterActiveRange(current.format('YYYY-MM-DD'), @state.till.format('YYYY-MM-DD'))
     
+    @gatherHints()
+      
     _.map [0..months], (i) =>
       now   = moment(@state.from).add(i, 'month').startOf('month')
       key   = now.format('YYYY-MM-DD')
       title = now.format('MMM YYYY')
+      
+      hints = @_hints.get(key)?.map (value, name) ->
+        <li>
+          {name}: {"#{value.from} -> " if value.from} {value.to}
+        </li>
       
       className = React.addons.classSet
         current:    current.isSame(now)
@@ -55,6 +76,10 @@ module.exports = React.createClass
       
       <td key={key} className={className} data-title={title} onClick={@setCurrentDate.bind(@, now)}>
         {<span className="year">{now.format('YYYY')}</span> if now.month() == 0}
+        <div className="hint">
+          <header>{title}</header>
+          <ul>{hints?.toJS()}</ul>
+        </div>
         &nbsp;
       </td>
   
@@ -70,6 +95,10 @@ module.exports = React.createClass
   
   shouldComponentUpdate: (nextProps, nextState) ->
     nextProps.cursor.isChanged()
+  
+  
+  componentWillUpdate: ->
+    @_hints = null if @props.cursor.cursor('timeline-attributes').isChanged()
   
   
   getDefaultProps: ->

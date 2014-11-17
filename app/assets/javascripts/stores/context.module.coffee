@@ -35,7 +35,7 @@ CursorFactory = (path, callback) ->
   Cursor =
     
     isChanged: ->
-      !Immutable.is(__currData.getIn(path), __prevData.getIn(path))
+      !Immutable.is(Immutable.fromJS(__currData.getIn(path)), Immutable.fromJS(__prevData.getIn(path)))
     
 
     cursor: (subPath) ->
