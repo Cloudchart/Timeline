@@ -27,12 +27,21 @@ module.exports = React.createClass
       Immutable.fromJS(@props.cursor.get('timeline-attributes'))?.valueSeq().flatMap(-> arguments[0].keySeq()).flatten().toSet().toJS()
   
   
+  filterActiveRange: (now, till) ->
+    cursor = Immutable.fromJS(@props.cursor.get('timeline-attributes', {}))
+    if values = cursor.get(@props.cursor.get('focus'))
+      { start: now, finish: values.keySeq().filter((date) -> date > now).min() || till }
+    else
+      {}
+    
+  
+  
   gatherDates: ->
     months      = Math.ceil(moment.duration(@state.till - @state.from).as('months'))
     current     = moment(@props.cursor.get('date')).startOf('month')
     
     dates       = @filterActiveDates()
-    
+    range       = @filterActiveRange(current.format('YYYY-MM-DD'), @state.till.format('YYYY-MM-DD'))
     
     _.map [0..months], (i) =>
       now   = moment(@state.from).add(i, 'month').startOf('month')
@@ -42,6 +51,7 @@ module.exports = React.createClass
       className = React.addons.classSet
         current:    current.isSame(now)
         effective:  _.contains(dates, key)
+        range:      key >= range.start and key <= range.finish
       
       <td key={key} className={className} data-title={title} onClick={@setCurrentDate.bind(@, now)}>
         {<span className="year">{now.format('YYYY')}</span> if now.month() == 0}

@@ -80,6 +80,13 @@ module.exports = React.createClass
   
 
   handleFormSubmit: (attributes) ->
+    
+    
+  componentDidMount: ->
+    @props.cursor.timelineAttributes.update =>
+      _.reduce @props.timelineAttributesNames, (memo, name) ->
+        memo[name] = {} ; memo
+      , {}
   
   
   componentWillReceiveProps: ->
