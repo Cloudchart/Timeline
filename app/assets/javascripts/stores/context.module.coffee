@@ -22,11 +22,18 @@ ensureImmutable = (value) ->
   if Immutable.Iterable.isIterable(value) then value else Immutable.fromJS(value)
 
 
+__cursorCache = {}
+
+
 # Cursor Factory
 #
 CursorFactory = (path, callback) ->
   path      = pathAsArray(path)
   callback  = _.noop unless _.isFunction(callback)
+  
+  
+  GetIn = (path, notSetValue, data) ->
+    data.getIn(path, notSetValue)
   
   
   Cursor =
@@ -36,48 +43,65 @@ CursorFactory = (path, callback) ->
     
 
     cursor: (subPath) ->
-      CursorFactory(path.concat(subPath), callback)
+      absolutePathAsArray   = path.concat(pathAsArray(subPath))
+      absolutePathAsString  = pathAsString(absolutePathAsArray)
+      
+      __cursorCache[absolutePathAsString] ||= CursorFactory(absolutePathAsArray, callback)
   
   
     deref: (notSetValue) ->
-      __currData.getIn(path, ensureImmutable(notSetValue))
+      @getIn([], notSetValue)
 
 
     derefPrev: (notSetValue) ->
-      __prevData.getIn(path, ensureImmutable(notSetValue))
+      @getInPrev([], notSetValue)
     
     
     get: (key, notSetValue) ->
-      absolutePath = path.concat(key.toString())
-      __currData.getIn(absolutePath, ensureImmutable(notSetValue))
+      @getIn([key.toString()], notSetValue)
+    
+    
+    getIn: (subPath, notSetValue) ->
+      GetIn(path.concat(subPath), ensureImmutable(notSetValue), __currData)
   
   
     getPrev: (key, notSetValue) ->
-      absolutePath = path.concat(key.toString())
-      __prevData.getIn(absolutePath, ensureImmutable(notSetValue))
-  
-  
-  
+      @getInPrev([key.toString()], notSetValue)
+    
+
+    getInPrev: (subPath, notSetValue) ->
+      GetIn(path.concat(subPath), ensureImmutable(notSetValue), __prevData)
+    
+    
     set: (key, value) ->
-      absolutePath = path.concat(key.toString())
-      callback 'setIn', absolutePath, value
+      @setIn([key.toString()], value)
+    
+
+    setIn: (subPath, value) ->
+      callback 'setIn', path.concat(subPath), value
       @
   
 
     update: (fn) ->
-      callback 'updateIn', path, fn
+      @updateIn([], fn)
+    
+
+    updateIn: (subPath, fn) ->
+      callback 'updateIn', path.concat(subPath), fn
       @
     
 
     remove: (key) ->
-      absolutePath = path.concat(key.toString())
-      callback 'removeIn', absolutePath
+      @removeIn([key.toString()])
+    
+
+    removeIn: (subPath) ->
+      callback 'removeIn', path.concat(subPath)
       @
     
 
     clear: ->
-      callback 'removeIn', path
-      @
+      @removeIn([])
   
 
 __fnStack = []
@@ -103,7 +127,7 @@ commit = ->
           data.removeIn(path)
 
         else
-          console.warn 'UNKNOWN!!!'
+          console.warn 'UNKNOWN!!!', key
           data
 
     data
@@ -153,6 +177,10 @@ Context =
 
   cursor: (path) ->
     CursorFactory path, GlobalDataUpdater
+  
+  
+  size: ->
+    console.log __cursorCache
   
   
 # Exports

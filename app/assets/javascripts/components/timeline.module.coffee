@@ -33,7 +33,8 @@ module.exports = React.createClass
   
   
   filterActiveRange: (now, till) ->
-    cursor = Immutable.fromJS(@props.cursor.get('timeline-attributes', {}))
+    cursor = @props.cursor.get('timeline-attributes', {})
+
     if values = cursor.get(@props.cursor.get('focus'))
       { start: now, finish: values.keySeq().filter((date) -> date > now).min() || till }
     else
