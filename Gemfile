@@ -55,6 +55,9 @@ group :development, :test do
   
   # Quiet Assets turns off the Rails asset pipeline log
   gem 'quiet_assets'
+  
+  # Unicorn Rails
+  gem 'unicorn-rails'
 end
 
 
