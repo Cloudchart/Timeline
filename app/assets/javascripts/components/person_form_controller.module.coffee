@@ -92,7 +92,8 @@ module.exports = React.createClass
   shouldComponentUpdate: ->
     @props.cursor.date.isChanged() or
     @props.cursor.attributes.isChanged() or
-    @props.cursor.timelineAttributes.isChanged()
+    @props.cursor.timelineAttributes.isChanged() or
+    !!Context.cursor('timeline.keep-focus').deref()
     
   
   getDefaultProps: ->

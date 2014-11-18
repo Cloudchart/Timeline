@@ -120,7 +120,7 @@ __commitTimeout = null
 
 GlobalDataUpdater = (args...) ->
   __fnStack.push(args)
-  clearTimeout __commitTimeout ; __commitTimeout = setTimeout commit
+  clearTimeout __commitTimeout ; __commitTimeout = setTimeout commit, 10
   
 
 addListener = (path, callback) ->

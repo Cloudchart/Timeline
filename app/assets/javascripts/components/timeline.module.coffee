@@ -79,7 +79,7 @@ module.exports = React.createClass
         effective:  dates and dates.has(key)#_.contains(dates, key)
         range:      key >= range.start and key <= range.finish
       
-      <td key={key} className={className} data-title={title} onClick={@setCurrentDate.bind(@, now)}>
+      <td key={key} className={className} data-title={title} onMouseDown={@setCurrentDate.bind(@, now)}>
         {<span className="year">{now.format('YYYY')}</span> if now.month() == 0}
         <div className="hint">
           <header>{title}</header>
