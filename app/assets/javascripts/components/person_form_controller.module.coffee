@@ -16,39 +16,39 @@ module.exports = React.createClass
   gatherAttributes: (now = @props.cursor.date.deref()) ->
     attributes = @props.cursor.attributes.deref({})
     
-    _.extend attributes, _.reduce @props.cursor.timelineAttributes.deref({}), (memo, values, name) =>
-      memo[name] = values[now] || null
-      memo
-    , {}
-    
-    attributes
+    attributes.update =>
+      @props.cursor.timelineAttributes.deref({}).mapEntries ([k, v]) ->
+        [k, v.get(now, null)]
   
   
   gatherPlaceholders: ->
-    now                 = @props.cursor.date.deref({})
-    timelineAttributes  = Immutable.fromJS(@props.cursor.timelineAttributes.deref({}))
+    now = @props.cursor.date.deref()
 
-    _.reduce @props.timelineAttributesNames, (memo, name) =>
-      if values = timelineAttributes.get(name)
-        memo[name] = values.get(values.filter((v, k) -> k < now).keySeq().max())
-      memo
-    , {}
+    @props.cursor.timelineAttributes.deref({}).mapEntries ([k, v]) ->
+      [k, v.filter((v, k) -> k < now).maxBy((v, k) -> k)]
   
   
   handleFieldFocus: (name) ->
     cursor = Context.cursor(['timeline', 'focus'])
-    if name then cursor.update (-> name) else cursor.clear()
+
+    clearTimeout(@_focusTimeout)
+
+    unless name
+      @_focusTimeout = setTimeout (-> cursor.clear()), 100
+    else
+      Context.cursor('timeline.keep-focus').clear()
+      cursor.update (-> name)
   
   
   handleFormUpdate: (attributes, now = @props.cursor.date.deref()) ->
     prevAttributes    = @gatherAttributes(now)
 
     changedAttributes = _.reduce attributes, (memo, value, name) ->
-      memo[name] = value unless Immutable.is(prevAttributes[name], value)
+      memo[name] = value unless Immutable.is(prevAttributes.get(name), value)
       memo
     , {}
     
-    return if _.size(changedAttributes) is 0
+    return if changedAttributes.size is 0
     
     changedTimelineAttributes = _.reduce changedAttributes, (memo, value, name) ->
       if Schema.properties[name].timeline is true
@@ -73,7 +73,7 @@ module.exports = React.createClass
         else
           memo.removeIn([name, now])
 
-      , Immutable.fromJS(@props.cursor.timelineAttributes.deref({}))
+      , @props.cursor.timelineAttributes.deref({})
       
       @props.cursor.timelineAttributes.update (attributes = {}) => Immutable.fromJS(attributes).merge(changedTimelineAttributes).toJS()
 
@@ -88,12 +88,6 @@ module.exports = React.createClass
         memo[name] = {} ; memo
       , {}
   
-  
-  componentWillReceiveProps: ->
-    if @props.cursor.date.isChanged()
-      @handleFormUpdate(@refs['form'].getAttributes(), @props.cursor.date.derefPrev())
-      
-    
   
   shouldComponentUpdate: ->
     @props.cursor.date.isChanged() or
@@ -111,7 +105,8 @@ module.exports = React.createClass
       onFieldFocus  = {@handleFieldFocus}
       onFormUpdate  = {@handleFormUpdate}
       onFormSubmit  = {@handleFormSubmit}
-      attributes    = {@gatherAttributes()}
-      placeholders  = {@gatherPlaceholders()}
+      attributes    = {@gatherAttributes().toJS()}
+      placeholders  = {@gatherPlaceholders().toJS()}
       errors        = {{}}
+      focus         = {Context.cursor('timeline.keep-focus').deref()}
     />

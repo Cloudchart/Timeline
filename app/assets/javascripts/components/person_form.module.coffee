@@ -128,9 +128,12 @@ module.exports = React.createClass
   
   
   componentWillReceiveProps: (nextProps) ->
+    if field = @refs[nextProps.focus]
+      setTimeout -> field.getDOMNode().focus()
+
     @setState(@getStateFromProps(nextProps))
   
-  
+
   getDefaultProps: ->
     onFieldFocus: _.noop
     onFormUpdate: _.noop

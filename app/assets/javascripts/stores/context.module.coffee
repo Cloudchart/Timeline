@@ -29,13 +29,10 @@ CursorFactory = (path, callback) ->
   callback  = _.noop unless _.isFunction(callback)
   
   
-  updater = (fn) -> callback(fn(), __currData, path)
-  
-
   Cursor =
     
     isChanged: ->
-      !Immutable.is(Immutable.fromJS(__currData.getIn(path)), Immutable.fromJS(__prevData.getIn(path)))
+      !Immutable.is(__currData.getIn(path), __prevData.getIn(path))
     
 
     cursor: (subPath) ->
@@ -43,54 +40,88 @@ CursorFactory = (path, callback) ->
   
   
     deref: (notSetValue) ->
-      __currData.getIn(path, notSetValue)
+      __currData.getIn(path, ensureImmutable(notSetValue))
 
 
     derefPrev: (notSetValue) ->
-      __prevData.getIn(path, notSetValue)
+      __prevData.getIn(path, ensureImmutable(notSetValue))
     
     
     get: (key, notSetValue) ->
       absolutePath = path.concat(key.toString())
-      __currData.getIn(absolutePath, notSetValue)
+      __currData.getIn(absolutePath, ensureImmutable(notSetValue))
   
   
     getPrev: (key, notSetValue) ->
       absolutePath = path.concat(key.toString())
-      __prevData.getIn(absolutePath, notSetValue)
+      __prevData.getIn(absolutePath, ensureImmutable(notSetValue))
+  
   
   
     set: (key, value) ->
       absolutePath = path.concat(key.toString())
-      updater -> __currData.setIn(absolutePath, value)
+      callback 'setIn', absolutePath, value
       @
   
 
     update: (fn) ->
-      updater -> __currData.updateIn(path, fn)
+      callback 'updateIn', path, fn
       @
     
 
     remove: (key) ->
       absolutePath = path.concat(key.toString())
-      updater -> __currData.removeIn(absolutePath)
+      callback 'removeIn', absolutePath
       @
     
 
     clear: ->
-      updater -> __currData.removeIn(path)
+      callback 'removeIn', path
       @
   
 
+__fnStack = []
 
-GlobalDataUpdater = (next_data, prev_data, path) ->
-  __currData  = next_data
-  __prevData  = prev_data
+commit = ->
+
+  __nextData = __currData.withMutations (data) ->
+    
+    __fnStack.forEach (args) ->
+      [key, path, value] = args
+
+      data = switch key
+
+        when 'setIn'
+          value = ensureImmutable(value)
+          data.setIn(path, value)
+
+        when 'updateIn'
+          value = ensureImmutable(value(data.getIn(path)))
+          data.setIn(path, value)
+
+        when 'removeIn'
+          data.removeIn(path)
+
+        else
+          console.warn 'UNKNOWN!!!'
+          data
+
+    data
+  
+  __prevData  = __currData
+  __currData  = __nextData
+  __fnStack   = []
   
   _.invoke (__callbacks[''] || []), 'call'
-  
-  __currData
 
+
+__commitTimeout = null
+
+
+GlobalDataUpdater = (args...) ->
+  __fnStack.push(args)
+  clearTimeout __commitTimeout ; __commitTimeout = setTimeout commit
+  
 
 addListener = (path, callback) ->
   stringPath  = pathAsString(path)
@@ -117,7 +148,7 @@ Context =
     
     addGlobalListener ->
       return unless root.isMounted()
-      requestAnimationFrame render
+      render()
   
 
   cursor: (path) ->

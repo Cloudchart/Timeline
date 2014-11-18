@@ -8,6 +8,10 @@ TimelineStore = require('stores/timeline_store')
 Context       = require('stores/context')
 
 
+uniqueDates = (sequence) ->
+  sequence.valueSeq().flatMap((v, k) -> v.keySeq()).flatten().toSet()
+
+
 # Exports
 #
 module.exports = React.createClass
@@ -21,10 +25,11 @@ module.exports = React.createClass
   
   
   filterActiveDates: ->
-    if attribute = @props.cursor.get('focus')
-      Immutable.fromJS(@props.cursor.get('timeline-attributes'))?.get(attribute)?.keySeq().toArray()
-    else
-      Immutable.fromJS(@props.cursor.get('timeline-attributes'))?.valueSeq().flatMap(-> arguments[0].keySeq()).flatten().toSet().toJS()
+    key       = @props.cursor.get('focus')
+    sequence  = Immutable.fromJS(@props.cursor.get('timeline-attributes', {}))
+    sequence  = sequence.filter(-> arguments[1] == key) if sequence.has(key)
+
+    uniqueDates(sequence)
   
   
   filterActiveRange: (now, till) ->
@@ -71,7 +76,7 @@ module.exports = React.createClass
       
       className = React.addons.classSet
         current:    current.isSame(now)
-        effective:  _.contains(dates, key)
+        effective:  dates and dates.has(key)#_.contains(dates, key)
         range:      key >= range.start and key <= range.finish
       
       <td key={key} className={className} data-title={title} onClick={@setCurrentDate.bind(@, now)}>
@@ -85,7 +90,7 @@ module.exports = React.createClass
   
   
   handleMouseDown: (event) ->
-    event.preventDefault()
+    @props.cursor.set('keep-focus', @props.cursor.get('focus'))
   
   
   componentDidMount: ->
