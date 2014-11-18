@@ -8,7 +8,7 @@ TimelineStore = require('stores/timeline_store')
 Context       = require('stores/context')
 
 
-uniqueDates = (sequence) ->
+uniqueValues = (sequence) ->
   sequence.valueSeq().flatMap((v, k) -> v.keySeq()).flatten().toSet()
 
 
@@ -26,17 +26,21 @@ module.exports = React.createClass
   
   filterActiveDates: ->
     key       = @props.cursor.get('focus')
-    sequence  = Immutable.fromJS(@props.cursor.get('timeline-attributes', {}))
+    sequence  = Immutable.fromJS(@props.cursor.get('timeline-attributes', {})).toSeq()
     sequence  = sequence.filter(-> arguments[1] == key) if sequence.has(key)
 
-    uniqueDates(sequence)
+    uniqueValues(sequence)
   
   
   filterActiveRange: (now, till) ->
-    cursor = @props.cursor.get('timeline-attributes', {})
+    timelineAttributesNames = @props.cursor.get('timeline-attributes-names', [])
+    focusedAttributeName    = @props.cursor.get('focus')
+    
+    if timelineAttributesNames.contains(focusedAttributeName)
+      valuesForAttribute  = @props.cursor.getIn(['timeline-attributes', focusedAttributeName], {}).toSeq()
+      nextDate            = valuesForAttribute.keySeq().filter((date) -> date > now).min()
 
-    if values = cursor.get(@props.cursor.get('focus'))
-      { start: now, finish: values.keySeq().filter((date) -> date > now).min() || till }
+      { start: now, finish: nextDate || till }
     else
       {}
   
@@ -51,8 +55,6 @@ module.exports = React.createClass
             fromValue = if index > 0 then values.get(dates.get(index - 1))
             mutableMemo = mutableMemo.setIn([date, name], { from: fromValue, to: values.get(date) })
 
-          #values.forEach (value, date, map) ->
-          #  mutableMemo = mutableMemo.setIn([date, name], { to: value })
       , new Immutable.Map
   
   
@@ -100,11 +102,14 @@ module.exports = React.createClass
   
   
   shouldComponentUpdate: (nextProps, nextState) ->
-    nextProps.cursor.isChanged()
+    @props.cursor.isChanged()
   
   
-  componentWillUpdate: ->
-    @_hints = null if @props.cursor.cursor('timeline-attributes').isChanged()
+  componentWillReceiveProps: ->
+    if @props.cursor.cursor('timeline-attributes').isChanged()
+      @_hints     = null
+      @_ranges    = null
+      @_keyframes = null
   
   
   getDefaultProps: ->
@@ -112,12 +117,8 @@ module.exports = React.createClass
 
 
   getInitialState: ->
-    from  = moment(new Date(@props.from)).startOf('month')
-    till  = moment(new Date(@props.till)).startOf('month')
-
-    from:     from
-    till:     till
-    timeline: {}
+    from: moment(new Date(@props.from)).startOf('month')
+    till: moment(new Date(@props.till)).startOf('month')
     
 
   render: ->

@@ -36,7 +36,7 @@ CursorFactory = (path, callback) ->
     data.getIn(path, notSetValue)
   
   
-  Cursor =
+  __cursorCache[pathAsString(path)] ||=
     
     isChanged: ->
       !Immutable.is(__currData.getIn(path), __prevData.getIn(path))
@@ -177,10 +177,6 @@ Context =
 
   cursor: (path) ->
     CursorFactory path, GlobalDataUpdater
-  
-  
-  size: ->
-    console.log __cursorCache
   
   
 # Exports

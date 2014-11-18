@@ -4,6 +4,8 @@ Context         = require('stores/context')
 PersonForm      = require('components/person_form')
 Schema          = require('schema/person')
 
+TimelineAttributesNames = Immutable.fromJS(_.filter(Object.keys(Schema.properties), (name) -> Schema.properties[name].timeline))
+
 
 # Main
 #
@@ -14,18 +16,19 @@ module.exports = React.createClass
 
 
   gatherAttributes: (now = @props.cursor.date.deref()) ->
-    attributes = @props.cursor.attributes.deref({})
+    attributes                = @props.cursor.attributes.deref({})
+    timelineAttributes        = @props.cursor.timelineAttributes.deref({})
+    timelineAttributesForNow  = timelineAttributes.mapEntries ([k, v]) -> [k, v.get(now, null)]
     
-    attributes.update =>
-      @props.cursor.timelineAttributes.deref({}).mapEntries ([k, v]) ->
-        [k, v.get(now, null)]
+    attributes.merge(timelineAttributesForNow)
+    
   
   
   gatherPlaceholders: ->
-    now = @props.cursor.date.deref()
+    now                 = @props.cursor.date.deref()
+    timelineAttributes  = @props.cursor.timelineAttributes.deref({})
 
-    @props.cursor.timelineAttributes.deref({}).mapEntries ([k, v]) ->
-      [k, v.filter((v, k) -> k < now).maxBy((v, k) -> k)]
+    timelineAttributes.mapEntries ([k, v]) -> [k, v.filter((v, k) -> k < now).maxBy((v, k) -> k)]
   
   
   handleFieldFocus: (name) ->
@@ -41,52 +44,37 @@ module.exports = React.createClass
   
   
   handleFormUpdate: (attributes, now = @props.cursor.date.deref()) ->
-    prevAttributes    = @gatherAttributes(now)
+    nextAttributes          = Immutable.fromJS(attributes)
+    prevAttributes          = @props.cursor.attributes.deref({})
+    prevTimelineAttributes  = @props.cursor.timelineAttributes.deref({})
 
-    changedAttributes = _.reduce attributes, (memo, value, name) ->
-      memo[name] = value unless Immutable.is(prevAttributes.get(name), value)
-      memo
-    , {}
     
-    return if changedAttributes.size is 0
-    
-    changedTimelineAttributes = _.reduce changedAttributes, (memo, value, name) ->
-      if Schema.properties[name].timeline is true
-        memo[name] = value
-      memo
-    , {}
+    changedAttributes = nextAttributes.filter (v, k) ->
+      !Immutable.is(prevAttributes.get(k), v) and !TimelineAttributesNames.contains(k)
     
     
-    changedAttributes = _.omit changedAttributes, Object.keys(changedTimelineAttributes)
+    changedTimelineAttributes = nextAttributes.filter (v, k) ->
+      !Immutable.is(prevTimelineAttributes.getIn([k, now]), v) and TimelineAttributesNames.contains(k)
     
-    
-    unless _.size(changedAttributes) is 0
-      @props.cursor.attributes.update (attributes = {}) => _.extend attributes, changedAttributes
-    
-    
-    unless _.size(changedTimelineAttributes) is 0
-      
-      changedTimelineAttributes = _.reduce changedTimelineAttributes, (memo, value, name) =>
 
-        if value
-          memo.setIn([name, now], value)
-        else
-          memo.removeIn([name, now])
+    changedTimelineAttributes = changedTimelineAttributes.mapEntries ([k, v]) ->
+      v = if v then prevTimelineAttributes.setIn([k, now], v) else prevTimelineAttributes.removeIn([k, now])
+      [k, v.get(k)]
+    
 
-      , @props.cursor.timelineAttributes.deref({})
-      
-      @props.cursor.timelineAttributes.update (attributes = {}) => Immutable.fromJS(attributes).merge(changedTimelineAttributes).toJS()
+    if changedAttributes.size > 0
+      @props.cursor.attributes.update (attributes = new Immutable.Map) -> attributes.merge(changedAttributes)
+    
 
-  
+    if changedTimelineAttributes.size > 0
+      @props.cursor.timelineAttributes.update (attributes = new Immutable.Map) -> attributes.merge(changedTimelineAttributes)
+
 
   handleFormSubmit: (attributes) ->
     
     
   componentDidMount: ->
-    @props.cursor.timelineAttributes.update =>
-      _.reduce @props.timelineAttributesNames, (memo, name) ->
-        memo[name] = {} ; memo
-      , {}
+    Context.cursor(['timeline']).set('timeline-attributes-names', TimelineAttributesNames)
   
   
   shouldComponentUpdate: ->
